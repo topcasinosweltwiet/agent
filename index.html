@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TopCasinos — Agent Panel</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#060d1a;color:#e0e8ff;min-height:100vh;}
+.login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:radial-gradient(ellipse at 50% 40%,#0a1a3a 0%,#060d1a 70%);}
+.login-card{background:#0d1b33;border:1px solid #1a3a7c;border-radius:18px;padding:2.5rem 2rem;width:100%;max-width:380px;box-shadow:0 0 60px rgba(26,58,124,0.4);}
+.login-logo{text-align:center;margin-bottom:2rem;}
+.login-logo-title{font-size:22px;font-weight:700;color:#fff;margin-bottom:4px;}
+.login-logo-sub{font-size:11px;color:#4a6ab0;letter-spacing:2px;text-transform:uppercase;}
+.lfield{margin-bottom:1.1rem;}
+.lfield label{display:block;font-size:11px;color:#4a6ab0;margin-bottom:6px;letter-spacing:0.5px;text-transform:uppercase;font-weight:700;}
+.lfield input{width:100%;padding:12px 14px;border-radius:8px;border:1px solid #1a3a7c;background:#060d1a;font-size:15px;color:#e0e8ff;outline:none;}
+.lfield input:focus{border-color:#2255b8;}
+.btn-login{width:100%;padding:13px;background:#1a3a7c;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;margin-top:0.5rem;}
+.btn-login:hover{background:#2255b8;}
+.btn-login:disabled{background:#0a1525;color:#4a6ab0;cursor:not-allowed;}
+.login-err{background:rgba(192,57,43,0.15);color:#e74c3c;border:1px solid rgba(192,57,43,0.3);border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:1rem;display:none;}
+.panel{display:none;}
+.panel.active{display:block;min-height:100vh;}
+.topbar{background:#0d1b33;border-bottom:1px solid #1a3a7c;padding:0.8rem 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;flex-wrap:wrap;gap:8px;}
+.topbar-brand{font-size:18px;font-weight:700;color:#fff;display:flex;align-items:center;gap:10px;}
+.agent-badge{background:#1a3a7c;color:#7eb3ff;border-radius:6px;padding:2px 10px;font-size:11px;font-weight:700;letter-spacing:1px;}
+.topbar-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.agent-name-top{font-size:13px;color:#c8d4f0;}
+.agent-id-top{background:#060d1a;border:1px solid #1a3a7c;border-radius:6px;padding:4px 12px;font-size:12px;color:#7eb3ff;font-weight:700;}
+.balance-chip{background:#060d1a;border:1px solid rgba(74,222,128,0.3);border-radius:8px;padding:5px 14px;font-size:13px;color:#4ade80;font-weight:700;}
+.btn-logout{background:transparent;border:1px solid #1a3a7c;color:#4a6ab0;border-radius:6px;padding:6px 14px;font-size:13px;cursor:pointer;}
+.btn-logout:hover{background:#1a3a7c;color:#fff;}
+.main{max-width:800px;margin:0 auto;padding:2rem 1.5rem;}
+.welcome-card{background:#0d1b33;border:1px solid #1a3a7c;border-radius:14px;padding:1.5rem;margin-bottom:2rem;}
+.welcome-title{font-size:20px;font-weight:700;color:#fff;margin-bottom:4px;}
+.welcome-sub{font-size:13px;color:#4a6ab0;}
+.info-row{display:flex;gap:10px;margin-top:1rem;flex-wrap:wrap;}
+.info-chip{background:#060d1a;border:1px solid #1a3a7c;border-radius:8px;padding:8px 14px;font-size:13px;color:#c8d4f0;}
+.info-chip span{color:#7eb3ff;font-weight:700;}
+.action-row{display:flex;gap:12px;margin-bottom:2rem;flex-wrap:wrap;}
+.action-btn{display:flex;align-items:center;gap:10px;padding:16px 20px;border-radius:14px;border:1px solid #1a3a7c;background:#0d1b33;color:#e0e8ff;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;flex:1;min-width:130px;}
+.action-btn:hover{background:#1a3a7c;color:#fff;}
+.action-btn .aicon{font-size:22px;}
+.action-btn.green{border-color:rgba(74,222,128,0.3);}
+.action-btn.green:hover{background:rgba(74,222,128,0.08);border-color:#4ade80;}
+.action-btn.orange{border-color:rgba(251,146,60,0.3);}
+.action-btn.orange:hover{background:rgba(251,146,60,0.08);border-color:#fb923c;}
+.action-btn.gold{border-color:rgba(246,201,0,0.3);}
+.action-btn.gold:hover{background:rgba(246,201,0,0.08);border-color:#f6c90e;}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;}
+.stat-card{background:#0d1b33;border:1px solid #1a3a7c;border-radius:12px;padding:1.1rem;}
+.stat-card .sv{font-size:20px;font-weight:700;color:#fff;}
+.stat-card .sl{font-size:12px;color:#4a6ab0;margin-top:4px;}
+.overlay{position:fixed;inset:0;background:rgba(3,7,18,0.88);display:none;align-items:center;justify-content:center;z-index:999;padding:1rem;}
+.overlay.open{display:flex;}
+.modal{background:#0d1b33;border:1px solid #1a3a7c;border-radius:18px;padding:2rem;width:100%;max-width:460px;position:relative;box-shadow:0 0 60px rgba(26,58,124,0.5);max-height:92vh;overflow-y:auto;}
+.modal-title{font-size:18px;font-weight:700;color:#fff;margin-bottom:1.5rem;}
+.mclose{position:absolute;top:14px;right:16px;background:#060d1a;border:1px solid #1a3a7c;border-radius:6px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:#4a6ab0;font-weight:700;}
+.mclose:hover{color:#fff;border-color:#3b7dd8;}
+.mfield{margin-bottom:1rem;}
+.mfield label{display:block;font-size:11px;color:#4a6ab0;margin-bottom:6px;letter-spacing:0.5px;text-transform:uppercase;font-weight:700;}
+.mfield input{width:100%;padding:11px 14px;border-radius:8px;border:1px solid #1a3a7c;background:#060d1a;font-size:15px;color:#e0e8ff;outline:none;}
+.mfield input:focus{border-color:#2255b8;}
+.btn-submit{width:100%;padding:12px;background:#1a3a7c;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;margin-top:0.25rem;}
+.btn-submit:hover{background:#2255b8;}
+.btn-submit.green-btn{background:rgba(74,222,128,0.15);color:#4ade80;border:1px solid rgba(74,222,128,0.3);}
+.btn-submit.green-btn:hover{background:rgba(74,222,128,0.25);}
+.btn-submit.orange-btn{background:#c0621a;color:#fff;border:none;}
+.btn-submit.orange-btn:hover{background:#e67e22;}
+.btn-submit.gold-btn{background:rgba(184,134,11,0.2);color:#f6c90e;border:1px solid rgba(184,134,11,0.4);}
+.btn-submit.gold-btn:hover{background:rgba(184,134,11,0.3);}
+.btn-submit:disabled{opacity:0.5;cursor:not-allowed;}
+.btn-cancel-m{width:100%;padding:11px;background:transparent;color:#e74c3c;border:1px solid rgba(231,76,60,0.3);border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;margin-top:0.5rem;}
+.btn-cancel-m:hover{background:rgba(231,76,60,0.1);}
+.merr{background:rgba(192,57,43,0.15);color:#e74c3c;border:1px solid rgba(192,57,43,0.3);border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:1rem;display:none;}
+.msuccess{background:rgba(74,222,128,0.1);color:#4ade80;border:1px solid rgba(74,222,128,0.3);border-radius:8px;padding:12px 14px;font-size:14px;margin-top:0.75rem;display:none;}
+.customer-found{background:#060d1a;border:1px solid #2255b8;border-radius:10px;padding:1rem 1.25rem;margin:0.75rem 0;display:none;}
+.cf-name{font-size:16px;font-weight:700;color:#fff;}
+.cf-id{font-size:13px;color:#7eb3ff;margin-top:4px;}
+.amount-display{background:#060d1a;border:1px solid #1a3a7c;border-radius:10px;padding:14px 18px;text-align:right;font-size:28px;font-weight:700;color:#4ade80;margin-bottom:1rem;min-height:60px;}
+.currency{font-size:16px;color:#4a6ab0;margin-right:6px;}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1rem;}
+.key{padding:16px;background:#0a1525;border:1px solid #1a3a7c;border-radius:10px;font-size:20px;font-weight:600;color:#e0e8ff;cursor:pointer;text-align:center;transition:all 0.15s;user-select:none;}
+.key:hover{background:#1a3a7c;color:#fff;}
+.key:active{transform:scale(0.95);}
+.key.zero{grid-column:span 2;}
+.key.del{background:rgba(231,76,60,0.1);border-color:rgba(231,76,60,0.3);color:#e74c3c;}
+.key.del:hover{background:rgba(231,76,60,0.2);}
+.code-hint{background:#060d1a;border:1px solid #1a3a7c;border-radius:8px;padding:10px 14px;font-size:12px;color:#4a6ab0;margin-bottom:1rem;line-height:1.6;}
+.code-hint strong{color:#7eb3ff;}
+.wd-decoded{background:#060d1a;border:1px solid rgba(74,222,128,0.4);border-radius:12px;padding:1.25rem;margin:1rem 0;display:none;}
+.wd-decoded .wd-label{font-size:12px;color:#4a6ab0;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;}
+.wd-decoded .wd-amount{font-size:32px;font-weight:700;color:#4ade80;}
+.wd-decoded .wd-note{font-size:12px;color:#4ade80;margin-top:6px;}
+.divider{border:none;border-top:1px solid #1a3a7c;margin:1rem 0;}
+.txn-item{background:#060d1a;border:1px solid #1a3a7c;border-radius:10px;padding:0.9rem 1.1rem;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
+.tl1{font-size:14px;font-weight:700;color:#fff;}
+.tl2{font-size:12px;color:#4a6ab0;margin-top:2px;}
+.tr1{font-size:16px;font-weight:700;color:#4ade80;text-align:right;}
+.badge-dep{background:rgba(74,222,128,0.1);color:#4ade80;border:1px solid rgba(74,222,128,0.3);border-radius:20px;padding:2px 10px;font-size:10px;font-weight:700;}
+.badge-wd{background:rgba(251,146,60,0.1);color:#fb923c;border:1px solid rgba(251,146,60,0.3);border-radius:20px;padding:2px 10px;font-size:10px;font-weight:700;}
+.no-txn{text-align:center;padding:2rem;color:#4a6ab0;font-size:14px;}
+.crypto-opt-item{background:#060d1a;border:1.5px solid #1a3a7c;border-radius:10px;padding:0.9rem 1rem;margin-bottom:8px;cursor:pointer;display:flex;align-items:center;gap:12px;transition:all 0.15s;}
+.crypto-opt-item:hover,.crypto-opt-item.sel{border-color:#3b7dd8;background:#0a1525;}
+.co-icon{width:38px;height:38px;border-radius:8px;background:#1a3a7c;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#7eb3ff;flex-shrink:0;}
+.co-name{font-size:13px;font-weight:700;color:#e0e8ff;}
+.co-net{font-size:11px;color:#4a6ab0;margin-top:2px;}
+.addr-box-inner{background:#060d1a;border:1px solid #2255b8;border-radius:8px;padding:1rem;margin:0.75rem 0;display:none;}
+.addr-lbl-s{font-size:10px;color:#4a6ab0;text-transform:uppercase;letter-spacing:0.5px;font-weight:700;margin-bottom:6px;}
+.addr-val-s{font-size:12px;color:#e0e8ff;word-break:break-all;font-family:'Courier New',monospace;background:#0a1525;padding:8px;border-radius:6px;line-height:1.6;}
+.addr-copy{background:#1a3a7c;color:#7eb3ff;border:none;border-radius:6px;padding:6px 12px;font-size:11px;cursor:pointer;margin-top:8px;font-weight:700;}
+.addr-warn-s{font-size:11px;color:#e67e22;margin-top:8px;padding:6px 8px;background:rgba(230,126,34,0.08);border-radius:6px;border:1px solid rgba(230,126,34,0.2);}
+</style>
+</head>
+<body>
+
+<div class="login-screen" id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-title">TopCasinos</div>
+      <div class="login-logo-sub">Agent Portal</div>
+    </div>
+    <div class="login-err" id="login-err"></div>
+    <div class="lfield"><label>Agent ID</label><input type="text" id="l-id" placeholder="Enter your agent ID"/></div>
+    <div class="lfield"><label>Username</label><input type="text" id="l-user" placeholder="Enter your username"/></div>
+    <div class="lfield"><label>Password</label><input type="password" id="l-pass" placeholder="Enter your password"/></div>
+    <button class="btn-login" id="signin-btn">Sign In</button>
+  </div>
+</div>
+
+<div class="panel" id="panel">
+  <div class="topbar">
+    <div class="topbar-brand">TopCasinos <span class="agent-badge">AGENT</span></div>
+    <div class="topbar-right">
+      <span class="agent-name-top" id="top-name"></span>
+      <span class="agent-id-top" id="top-id"></span>
+      <div class="balance-chip" id="top-balance">Rs. 0.00</div>
+      <button class="btn-logout" id="logout-btn">Log out</button>
+    </div>
+  </div>
+  <div class="main">
+    <div class="welcome-card">
+      <div class="welcome-title" id="welcome-title">Welcome, Agent!</div>
+      <div class="welcome-sub">Manage customer deposits and withdrawals below.</div>
+      <div class="info-row">
+        <div class="info-chip">Agent ID: <span id="info-id"></span></div>
+        <div class="info-chip">City: <span id="info-city"></span></div>
+        <div class="info-chip">Street: <span id="info-street"></span></div>
+        <div class="info-chip">Balance: <span id="info-balance">Rs. 0.00</span></div>
+      </div>
+    </div>
+    <div class="action-row">
+      <button class="action-btn green" id="open-deposit-btn">
+        <span class="aicon">💳</span>
+        <div><div>Deposit</div><div style="font-size:11px;color:#4a6ab0;font-weight:400;margin-top:2px;">Add funds to customer</div></div>
+      </button>
+      <button class="action-btn orange" id="open-withdraw-btn">
+        <span class="aicon">💸</span>
+        <div><div>Withdraw</div><div style="font-size:11px;color:#4a6ab0;font-weight:400;margin-top:2px;">Process customer code</div></div>
+      </button>
+      <button class="action-btn gold" id="open-crypto-btn">
+        <span class="aicon">🪙</span>
+        <div><div>Crypto Deposit</div><div style="font-size:11px;color:#4a6ab0;font-weight:400;margin-top:2px;">Receive crypto payment</div></div>
+      </button>
+      <button class="action-btn" id="open-history-btn">
+        <span class="aicon">📋</span>
+        <div><div>History</div><div style="font-size:11px;color:#4a6ab0;font-weight:400;margin-top:2px;">My transactions</div></div>
+      </button>
+    </div>
+    <div class="stats-row">
+      <div class="stat-card"><div class="sv" id="st-deps">0</div><div class="sl">Deposits today</div></div>
+      <div class="stat-card"><div class="sv" id="st-wds">0</div><div class="sl">Withdrawals today</div></div>
+      <div class="stat-card"><div class="sv" id="st-sent">Rs. 0</div><div class="sl">Total deposited</div></div>
+      <div class="stat-card"><div class="sv" id="st-bal">Rs. 0</div><div class="sl">My balance</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- DEPOSIT MODAL -->
+<div class="overlay" id="modal-deposit">
+  <div class="modal">
+    <div class="mclose" id="dep-close-btn">X</div>
+    <div class="modal-title">Deposit to Customer</div>
+    <div class="merr" id="dep-err"></div>
+    <div class="mfield"><label>Search Customer ID</label><input type="text" id="dep-search" placeholder="Enter customer ID..."/></div>
+    <div class="customer-found" id="dep-customer"><div class="cf-name" id="dep-cname"></div><div class="cf-id" id="dep-cid"></div></div>
+    <div class="mfield" style="margin-top:1rem;">
+      <label>Amount (NPR)</label>
+      <div class="amount-display"><span class="currency">Rs.</span><span id="dep-display">0</span></div>
+      <div class="keypad" id="dep-keypad">
+        <div class="key" data-val="1">1</div><div class="key" data-val="2">2</div><div class="key" data-val="3">3</div>
+        <div class="key" data-val="4">4</div><div class="key" data-val="5">5</div><div class="key" data-val="6">6</div>
+        <div class="key" data-val="7">7</div><div class="key" data-val="8">8</div><div class="key" data-val="9">9</div>
+        <div class="key zero" data-val="0">0</div><div class="key del" data-val="del">⌫</div>
+      </div>
+    </div>
+    <button class="btn-submit green-btn" id="dep-confirm-btn">Confirm Deposit</button>
+    <button class="btn-cancel-m" id="dep-cancel-btn">Cancel / Clear</button>
+    <div class="msuccess" id="dep-success"></div>
+  </div>
+</div>
+
+<!-- WITHDRAW MODAL -->
+<div class="overlay" id="modal-withdraw">
+  <div class="modal">
+    <div class="mclose" id="wd-close-btn">X</div>
+    <div class="modal-title">Customer Withdrawal</div>
+    <div class="merr" id="wd-err"></div>
+    <div class="code-hint">Customer will show you a <strong>4-letter code</strong>. Enter it below to look up the withdrawal details.</div>
+    <div class="mfield"><label>4-Letter Withdrawal Code</label><input type="text" id="wd-code" placeholder="e.g. KRTX" maxlength="4" style="letter-spacing:6px;text-transform:uppercase;font-size:22px;font-weight:700;text-align:center;"/></div>
+    <div class="customer-found" id="wd-customer"><div class="cf-name" id="wd-cname"></div><div class="cf-id" id="wd-cid"></div></div>
+    <div class="wd-decoded" id="wd-decoded">
+      <div class="wd-label">Amount to pay customer</div>
+      <div class="wd-amount"><span style="font-size:18px;color:#4a6ab0;margin-right:6px;">Rs.</span><span id="wd-decoded-amt">0</span></div>
+      <div class="wd-note">Code verified — ready to confirm.</div>
+    </div>
+    <button class="btn-submit orange-btn" id="wd-confirm-btn" style="margin-top:1rem;">Confirm Withdrawal</button>
+    <button class="btn-cancel-m" id="wd-cancel-btn">Cancel / Clear</button>
+    <div class="msuccess" id="wd-success"></div>
+  </div>
+</div>
+
+<!-- CRYPTO DEPOSIT MODAL -->
+<div class="overlay" id="modal-crypto">
+  <div class="modal">
+    <div class="mclose" id="crypto-close-btn">X</div>
+    <div class="modal-title">Crypto Deposit</div>
+    <div class="merr" id="crypto-err"></div>
+    <div style="background:#060d1a;border:1px solid #1a3a7c;border-radius:8px;padding:10px 14px;font-size:12px;color:#4a6ab0;margin-bottom:1rem;line-height:1.7;">
+      Show wallet address to customer. After they pay, enter the amount and TX hash below.
+    </div>
+    <div style="font-size:11px;color:#4a6ab0;text-transform:uppercase;letter-spacing:0.5px;font-weight:700;margin-bottom:8px;">Select Cryptocurrency</div>
+    <div id="crypto-opt-list"></div>
+    <div class="addr-box-inner" id="crypto-addr-box">
+      <div class="addr-lbl-s">Wallet Address</div>
+      <div class="addr-val-s" id="crypto-addr-val"></div>
+      <div class="addr-lbl-s" style="margin-top:8px;">Network</div>
+      <div style="font-size:12px;color:#7eb3ff;margin-top:2px;" id="crypto-addr-net"></div>
+      <button class="addr-copy" id="crypto-copy-addr">Copy Address</button>
+      <div class="addr-warn-s">Show this address to the customer. Ask them to send exact amount and provide TX hash.</div>
+    </div>
+    <div class="mfield"><label>Amount Received (Rs. NPR equivalent)</label><input type="number" id="crypto-amount" placeholder="e.g. 5000" min="1"/></div>
+    <div class="mfield"><label>Transaction Hash (from customer)</label><input type="text" id="crypto-txhash" placeholder="Paste transaction hash..."/></div>
+    <div class="mfield"><label>Note (optional)</label><input type="text" id="crypto-note" placeholder="Optional note..."/></div>
+    <button class="btn-submit gold-btn" id="crypto-submit-btn">Submit to Admin for Approval</button>
+    <div class="msuccess" id="crypto-success"></div>
+  </div>
+</div>
+
+<!-- HISTORY MODAL -->
+<div class="overlay" id="modal-history">
+  <div class="modal" style="max-width:500px;">
+    <div class="mclose" id="hist-close-btn">X</div>
+    <div class="modal-title">My Transactions</div>
+    <div id="history-list"></div>
+  </div>
+</div>
+
+<script>
+var FB = 'https://topcasinos-b75b3-default-rtdb.asia-southeast1.firebasedatabase.app';
+
+function fbGet(p){return fetch(FB+p+'.json').then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();});}
+function fbUpdate(p,d){return fetch(FB+p+'.json',{method:'PATCH',body:JSON.stringify(d)}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();});}
+function fbPush(p,d){return fetch(FB+p+'.json',{method:'POST',body:JSON.stringify(d)}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();});}
+
+var currentAgent=null,agentData=null,depAmount='0',depCustId=null,wdCustId=null,wdAmt=0,wdCodeData=null,sessDeps=0,sessWds=0,sessSent=0,pollTimer=null,selCrypto=null;
+
+function fmt(n){return 'Rs. '+Number(n||0).toLocaleString('en-NP',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function $id(id){return document.getElementById(id);}
+function showErr(id,msg){var e=$id(id);e.textContent=msg;e.style.display='block';}
+function hideEl(id){$id(id).style.display='none';}
+function showEl(id,msg){var e=$id(id);if(msg)e.textContent=msg;e.style.display='block';}
+function setText(id,v){$id(id).textContent=v;}
+function getVal(id){return $id(id).value.trim();}
+function makePrefix(c,s){return c.replace(/\s+/g,'').substring(0,3).toUpperCase()+s.replace(/\s+/g,'').substring(0,3).toUpperCase();}
+function parseCode(c,s,code){var p=makePrefix(c,s),u=code.toUpperCase();if(!u.startsWith(p))return null;var n=parseInt(u.slice(p.length),10);return(!isNaN(n)&&n>0)?n:null;}
+
+function openModal(id){$id(id).classList.add('open');}
+function closeModal(id){$id(id).classList.remove('open');}
+
+// LOGIN
+$id('signin-btn').addEventListener('click',doLogin);
+document.addEventListener('keydown',function(e){if(e.key==='Enter'&&$id('login-screen').style.display!=='none')doLogin();});
+
+function doLogin(){
+  var agentId=getVal('l-id'),username=getVal('l-user'),password=getVal('l-pass');
+  hideEl('login-err');
+  if(!agentId||!username||!password){showErr('login-err','Please fill in all fields.');return;}
+  var btn=$id('signin-btn');btn.textContent='Signing in...';btn.disabled=true;
+  var url=FB+'/agents/'+agentId+'.json';
+  fetch(url).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}).then(function(agent){
+    if(!agent){showErr('login-err','Agent ID '+agentId+' not found.');btn.textContent='Sign In';btn.disabled=false;return;}
+    if(agent.username!==username||agent.password!==password){showErr('login-err','Wrong credentials. Username: '+agent.username);btn.textContent='Sign In';btn.disabled=false;return;}
+    currentAgent=agentId;agentData=agent;
+    $id('login-screen').style.display='none';
+    $id('panel').classList.add('active');
+    btn.textContent='Sign In';btn.disabled=false;
+    updateUI();startPolling();
+  }).catch(function(e){showErr('login-err','Connection error: '+e.message);btn.textContent='Sign In';btn.disabled=false;});
+}
+
+$id('logout-btn').addEventListener('click',function(){
+  if(pollTimer)clearInterval(pollTimer);
+  currentAgent=null;agentData=null;sessDeps=0;sessWds=0;sessSent=0;
+  $id('login-screen').style.display='flex';
+  $id('panel').classList.remove('active');
+  $id('l-id').value='';$id('l-user').value='';$id('l-pass').value='';
+});
+
+function startPolling(){
+  if(pollTimer)clearInterval(pollTimer);
+  pollTimer=setInterval(function(){
+    if(!currentAgent){clearInterval(pollTimer);return;}
+    fbGet('/agents/'+currentAgent).then(function(d){if(d){agentData=d;updateUI();}}).catch(function(){});
+  },5000);
+}
+
+function updateUI(){
+  if(!agentData)return;
+  setText('top-name',agentData.name);setText('top-id','ID: '+agentData.agentId);
+  setText('top-balance',fmt(agentData.balance||0));
+  setText('welcome-title','Welcome, '+agentData.name+'!');
+  setText('info-id',agentData.agentId);setText('info-city',agentData.city);
+  setText('info-street',agentData.street);setText('info-balance',fmt(agentData.balance||0));
+  setText('st-deps',sessDeps);setText('st-wds',sessWds);
+  setText('st-sent',fmt(sessSent));setText('st-bal',fmt(agentData.balance||0));
+}
+
+// DEPOSIT
+$id('open-deposit-btn').addEventListener('click',function(){resetDeposit();openModal('modal-deposit');});
+$id('dep-close-btn').addEventListener('click',function(){closeModal('modal-deposit');});
+$id('dep-cancel-btn').addEventListener('click',resetDeposit);
+$id('dep-confirm-btn').addEventListener('click',confirmDeposit);
+$id('dep-search').addEventListener('input',function(){searchCustomer('dep');});
+
+$id('dep-keypad').addEventListener('click',function(e){
+  var k=e.target.closest('.key');if(!k)return;
+  var v=k.dataset.val;
+  if(v==='del'){depAmount=depAmount.length>1?depAmount.slice(0,-1):'0';}
+  else{depAmount=depAmount==='0'?v:depAmount+v;}
+  if(depAmount.length>9){depAmount=depAmount.slice(0,-1);return;}
+  setText('dep-display',Number(depAmount).toLocaleString('en-NP'));
+});
+
+function resetDeposit(){
+  depAmount='0';setText('dep-display','0');
+  $id('dep-search').value='';$id('dep-customer').style.display='none';
+  hideEl('dep-err');hideEl('dep-success');depCustId=null;
+}
+
+function confirmDeposit(){
+  hideEl('dep-err');hideEl('dep-success');
+  if(!depCustId){showErr('dep-err','Please find a valid customer first.');return;}
+  var amt=parseInt(depAmount,10);
+  if(!amt||amt<1){showErr('dep-err','Please enter a valid amount.');return;}
+  var bal=agentData.balance||0;
+  if(bal<amt){showErr('dep-err','Insufficient balance. Your balance is '+fmt(bal));return;}
+  var btn=$id('dep-confirm-btn');btn.textContent='Processing...';btn.disabled=true;
+  fbUpdate('/agents/'+currentAgent,{balance:bal-amt}).then(function(){
+    return fbGet('/players');
+  }).then(function(players){
+    if(!players)return;
+    var key=Object.keys(players).find(function(k){return String(players[k].uid)===String(depCustId);});
+    if(key)return fbUpdate('/players/'+key,{balance:(players[key].balance||0)+amt});
+  }).then(function(){
+    return fbPush('/agentTxns',{type:'deposit',agentId:currentAgent,agentName:agentData.name,customerUid:depCustId,amount:amt,time:new Date().toISOString()});
+  }).then(function(){
+    agentData.balance=bal-amt;sessDeps++;sessSent+=amt;
+    showEl('dep-success','Rs. '+amt.toLocaleString('en-NP')+' deposited to customer '+depCustId+'!');
+    depAmount='0';setText('dep-display','0');
+    $id('dep-search').value='';$id('dep-customer').style.display='none';depCustId=null;updateUI();
+    btn.textContent='Confirm Deposit';btn.disabled=false;
+  }).catch(function(e){showErr('dep-err','Error: '+e.message);btn.textContent='Confirm Deposit';btn.disabled=false;});
+}
+
+// WITHDRAW
+$id('open-withdraw-btn').addEventListener('click',function(){resetWithdraw();openModal('modal-withdraw');});
+$id('wd-close-btn').addEventListener('click',function(){closeModal('modal-withdraw');});
+$id('wd-cancel-btn').addEventListener('click',resetWithdraw);
+$id('wd-confirm-btn').addEventListener('click',confirmWithdraw);
+$id('wd-code').addEventListener('input',function(){
+  this.value=this.value.toUpperCase();
+  if(this.value.length>=4)decodeWdCode();
+  else{$id('wd-decoded').style.display='none';$id('wd-customer').style.display='none';hideEl('wd-err');wdAmt=0;wdCodeData=null;}
+});
+
+function resetWithdraw(){
+  $id('wd-code').value='';
+  $id('wd-customer').style.display='none';$id('wd-decoded').style.display='none';
+  hideEl('wd-err');hideEl('wd-success');
+  wdCustId=null;wdAmt=0;wdCodeData=null;
+}
+
+function decodeWdCode(){
+  var code=$id('wd-code').value.trim().toUpperCase();
+  $id('wd-decoded').style.display='none';hideEl('wd-err');wdAmt=0;wdCustId=null;wdCodeData=null;
+  if(!code||code.length<4)return;
+  // Look up code in Firebase
+  fbGet('/withdrawalCodes').then(function(codes){
+    if(!codes){showErr('wd-err','Code not found.');return;}
+    var entry=Object.entries(codes).find(function(e){return e[1].code===code&&e[1].status==='pending';});
+    if(!entry){showErr('wd-err','Invalid or already used code.');return;}
+    var data=entry[1];
+    // Check code is for this agent's city/street
+    if(data.agentCity!==agentData.city||data.agentStreet!==agentData.street){
+      showErr('wd-err','This code is for a different agent location.');return;
+    }
+    wdCodeData={key:entry[0],data:data};
+    wdAmt=data.amount;
+    wdCustId=data.playerUid;
+    setText('wd-decoded-amt',data.amount.toLocaleString('en-NP'));
+    // Show customer info
+    setText('wd-cname',data.playerName||data.playerUid);
+    setText('wd-cid','Customer ID: '+data.playerUid);
+    $id('wd-customer').style.display='block';
+    $id('wd-decoded').style.display='block';
+  }).catch(function(e){showErr('wd-err','Error: '+e.message);});
+}
+
+function confirmWithdraw(){
+  hideEl('wd-err');hideEl('wd-success');
+  if(!wdCodeData){showErr('wd-err','Please enter a valid withdrawal code.');return;}
+  if(!wdAmt){showErr('wd-err','No amount found.');return;}
+  var btn=$id('wd-confirm-btn');btn.textContent='Processing...';btn.disabled=true;
+  fbGet('/players').then(function(players){
+    if(!players){showErr('wd-err','Customer not found.');btn.textContent='Confirm Withdrawal';btn.disabled=false;return;}
+    var key=Object.keys(players).find(function(k){return String(players[k].uid)===String(wdCustId);});
+    if(!key){showErr('wd-err','Customer not found.');btn.textContent='Confirm Withdrawal';btn.disabled=false;return;}
+    var pb=players[key].balance||0;
+    if(pb<wdAmt){showErr('wd-err','Customer balance too low: '+fmt(pb));btn.textContent='Confirm Withdrawal';btn.disabled=false;return;}
+    var newAgentBal=(agentData.balance||0)+wdAmt;
+    fbUpdate('/players/'+key,{balance:pb-wdAmt})
+    .then(function(){return fbUpdate('/agents/'+currentAgent,{balance:newAgentBal});})
+    .then(function(){return fbUpdate('/withdrawalCodes/'+wdCodeData.key,{status:'used',usedAt:new Date().toISOString()});})
+    .then(function(){return fbPush('/agentTxns',{type:'withdraw',agentId:currentAgent,agentName:agentData.name,customerUid:wdCustId,customerName:players[key].username,amount:wdAmt,time:new Date().toISOString()});})
+    .then(function(){
+      agentData.balance=newAgentBal;sessWds++;
+      showEl('wd-success','Withdrawal of Rs. '+wdAmt.toLocaleString('en-NP')+' processed for '+players[key].username+'!');
+      resetWithdraw();updateUI();btn.textContent='Confirm Withdrawal';btn.disabled=false;
+    }).catch(function(e){showErr('wd-err','Error: '+e.message);btn.textContent='Confirm Withdrawal';btn.disabled=false;});
+  }).catch(function(e){showErr('wd-err','Error: '+e.message);btn.textContent='Confirm Withdrawal';btn.disabled=false;});
+}
+
+// CUSTOMER SEARCH
+function searchCustomer(prefix){
+  var v=$id(prefix+'-search').value.trim();
+  var box=$id(prefix+'-customer');box.style.display='none';
+  if(prefix==='dep')depCustId=null;else wdCustId=null;
+  if(!v)return;
+  fbGet('/players').then(function(players){
+    if(!players){setText(prefix+'-cname','No customers found');setText(prefix+'-cid','');box.style.display='block';return;}
+    var match=Object.values(players).find(function(p){return String(p.uid)===v;});
+    if(match){
+      setText(prefix+'-cname',match.username);setText(prefix+'-cid','Customer ID: '+match.uid);
+      if(prefix==='dep')depCustId=match.uid;else wdCustId=match.uid;
+    }else{setText(prefix+'-cname','Customer not found');setText(prefix+'-cid','Check the ID and try again');}
+    box.style.display='block';
+  }).catch(function(){setText(prefix+'-cname','Connection error');box.style.display='block';});
+}
+
+// CRYPTO DEPOSIT
+$id('open-crypto-btn').addEventListener('click',openCryptoModal);
+$id('crypto-close-btn').addEventListener('click',function(){closeModal('modal-crypto');});
+$id('crypto-copy-addr').addEventListener('click',function(){
+  var addr=$id('crypto-addr-val').textContent;
+  navigator.clipboard.writeText(addr).then(function(){$id('crypto-copy-addr').textContent='Copied!';setTimeout(function(){$id('crypto-copy-addr').textContent='Copy Address';},2000);});
+});
+$id('crypto-submit-btn').addEventListener('click',submitCryptoDeposit);
+
+function openCryptoModal(){
+  hideEl('crypto-err');hideEl('crypto-success');
+  $id('crypto-amount').value='';$id('crypto-txhash').value='';$id('crypto-note').value='';
+  $id('crypto-addr-box').style.display='none';selCrypto=null;
+  var list=$id('crypto-opt-list');
+  list.innerHTML='<div style="color:#4a6ab0;font-size:13px;padding:0.5rem 0;">Loading options...</div>';
+  fbGet('/agentWebSettings/'+currentAgent).then(function(settings){
+    var cryptos=(settings&&settings.cryptos&&settings.cryptos.length)?settings.cryptos:null;
+    if(!cryptos){
+      return fbGet('/agentWebSettings').then(function(all){
+        if(!all)return null;
+        var found=null;
+        Object.values(all).forEach(function(s){if(s.cryptos&&s.cryptos.length&&!found)found=s.cryptos;});
+        return found;
+      });
+    }
+    return cryptos;
+  }).then(function(cryptos){
+    if(!cryptos||!cryptos.length){
+      list.innerHTML='<div style="color:#e74c3c;font-size:13px;">No crypto options set up. Ask admin to configure in Agent Web settings.</div>';
+      return;
+    }
+    list.innerHTML='';
+    cryptos.forEach(function(c){
+      var div=document.createElement('div');div.className='crypto-opt-item';
+      var abbr=(c.symbol||c.coin||'?').slice(0,4).toUpperCase();
+      div.innerHTML='<div class="co-icon">'+abbr+'</div><div><div class="co-name">'+c.coin+' <span style="color:#4a6ab0;font-size:11px;">('+c.symbol+')</span></div><div class="co-net">'+c.network+'</div></div>';
+      div.addEventListener('click',function(){
+        list.querySelectorAll('.crypto-opt-item').forEach(function(o){o.classList.remove('sel');});
+        div.classList.add('sel');selCrypto=c;
+        $id('crypto-addr-val').textContent=c.address;
+        $id('crypto-addr-net').textContent='Network: '+c.network;
+        $id('crypto-addr-box').style.display='block';
+        hideEl('crypto-err');
+      });
+      list.appendChild(div);
+    });
+  }).catch(function(e){list.innerHTML='<div style="color:#e74c3c;font-size:13px;">Error: '+e.message+'</div>';});
+  openModal('modal-crypto');
+}
+
+function submitCryptoDeposit(){
+  hideEl('crypto-err');hideEl('crypto-success');
+  if(!selCrypto){showErr('crypto-err','Please select a cryptocurrency.');return;}
+  var amt=parseFloat($id('crypto-amount').value);
+  if(!amt||amt<1){showErr('crypto-err','Please enter the amount received.');return;}
+  var hash=$id('crypto-txhash').value.trim();
+  if(!hash||hash.length<10){showErr('crypto-err','Please enter a valid transaction hash.');return;}
+  var btn=$id('crypto-submit-btn');btn.textContent='Submitting...';btn.disabled=true;
+  fbPush('/cryptoDeposits',{
+    agentKey:currentAgent,agentId:agentData.agentId,agentName:agentData.name,
+    coin:selCrypto.coin,symbol:selCrypto.symbol,network:selCrypto.network,
+    amount:amt,txHash:hash,note:$id('crypto-note').value.trim(),
+    status:'pending',time:new Date().toISOString()
+  }).then(function(){
+    showEl('crypto-success','Submitted! Admin will verify and add Rs. '+amt.toLocaleString('en-NP')+' to your balance.');
+    $id('crypto-amount').value='';$id('crypto-txhash').value='';$id('crypto-note').value='';
+    btn.textContent='Submit to Admin for Approval';btn.disabled=false;
+  }).catch(function(e){showErr('crypto-err','Error: '+e.message);btn.textContent='Submit to Admin for Approval';btn.disabled=false;});
+}
+
+// HISTORY
+$id('open-history-btn').addEventListener('click',function(){renderHistory();openModal('modal-history');});
+$id('hist-close-btn').addEventListener('click',function(){closeModal('modal-history');});
+
+function renderHistory(){
+  var wrap=$id('history-list');
+  wrap.innerHTML='<div class="no-txn">Loading...</div>';
+  fbGet('/agentTxns').then(function(all){
+    if(!all){wrap.innerHTML='<div class="no-txn">No transactions yet.</div>';return;}
+    var txns=Object.values(all).filter(function(t){return t.agentId===currentAgent;}).reverse();
+    if(!txns.length){wrap.innerHTML='<div class="no-txn">No transactions yet.</div>';return;}
+    wrap.innerHTML=txns.map(function(t){
+      return '<div class="txn-item"><div><div class="tl1">Customer #'+t.customerUid+'</div><div class="tl2">'+new Date(t.time).toLocaleString()+'</div></div><div style="text-align:right"><div class="tr1">'+fmt(t.amount)+'</div><span class="'+(t.type==='deposit'?'badge-dep':'badge-wd')+'">'+(t.type==='deposit'?'Deposit':'Withdraw')+'</span></div></div>';
+    }).join('');
+  }).catch(function(){wrap.innerHTML='<div class="no-txn">Error loading transactions.</div>';});
+}
+
+// CLOSE ON OVERLAY CLICK
+document.addEventListener('click',function(e){
+  ['modal-deposit','modal-withdraw','modal-crypto','modal-history'].forEach(function(id){
+    if(e.target===$id(id))closeModal(id);
+  });
+});
+</script>
+</body>
+</html>
