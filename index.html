@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>TopCasinos — Agent Panel</title>
+<title>2xWin — Agent Panel</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Segoe UI',Arial,sans-serif;background:#060d1a;color:#e0e8ff;min-height:100vh;}
@@ -118,7 +118,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#060d1a;color:#e0e8ff;mi
 <div class="login-screen" id="login-screen">
   <div class="login-card">
     <div class="login-logo">
-      <div class="login-logo-title">TopCasinos</div>
+      <div class="login-logo-title">2xWin</div>
       <div class="login-logo-sub">Agent Portal</div>
     </div>
     <div class="login-err" id="login-err"></div>
@@ -131,7 +131,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#060d1a;color:#e0e8ff;mi
 
 <div class="panel" id="panel">
   <div class="topbar">
-    <div class="topbar-brand">TopCasinos <span class="agent-badge">AGENT</span></div>
+    <div class="topbar-brand">2xWin <span class="agent-badge">AGENT</span></div>
     <div class="topbar-right">
       <span class="agent-name-top" id="top-name"></span>
       <span class="agent-id-top" id="top-id"></span>
@@ -362,9 +362,20 @@ function confirmDeposit(){
   }).then(function(players){
     if(!players)return;
     var key=Object.keys(players).find(function(k){return String(players[k].uid)===String(depCustId);});
-    if(key)return fbUpdate('/players/'+key,{balance:(players[key].balance||0)+amt});
+    if(!key){throw new Error('Player not found: '+depCustId);}
+    var currentBal=Number(players[key].balance)||0;
+    var newBal=currentBal+amt;
+    console.log('Crediting player',key,'old bal:',currentBal,'new bal:',newBal);
+    return fbUpdate('/players/'+key,{balance:newBal});
   }).then(function(){
     return fbPush('/agentTxns',{type:'deposit',agentId:currentAgent,agentName:agentData.name,customerUid:depCustId,amount:amt,time:new Date().toISOString()});
+  }).then(function(){
+    // Send notification to player
+    return fbGet('/players').then(function(pls){
+      if(!pls)return;
+      var pk=Object.keys(pls).find(function(k){return String(pls[k].uid)===String(depCustId);});
+      if(pk)return fbPush('/notifications/'+pk,{msg:'Rs. '+amt.toLocaleString('en-NP')+' deposited to your account by agent.',type:'deposit',time:new Date().toISOString(),read:false});
+    });
   }).then(function(){
     agentData.balance=bal-amt;sessDeps++;sessSent+=amt;
     showEl('dep-success','Rs. '+amt.toLocaleString('en-NP')+' deposited to customer '+depCustId+'!');
